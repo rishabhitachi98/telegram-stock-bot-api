@@ -8,7 +8,7 @@ pandas
 rapidfuzz
 tradingview-ta
 mplfinance
-TA-Lib
+
 
 # AI & Utilities
 google-generativeai

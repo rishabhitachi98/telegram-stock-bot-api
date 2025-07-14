@@ -9,19 +9,16 @@ wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz
 tar -xzf ta-lib-0.4.0-src.tar.gz
 
 # Compile aur project ke andar hi install karein
-(cd ta-lib && ./configure --prefix=$PWD/../ta-lib-bin && make && make install)
+(cd ta-lib && ./configure --prefix=/opt/render/project/src/ta-lib-bin && make && make install)
 
 echo "TA-Lib C++ library locally installed successfully."
 
-# Step 2: Pip ko batayein ki TA-Lib kahan rakhi hai (Compile karne ke liye)
-export TA_INCLUDE_PATH=$PWD/ta-lib-bin/include
+# Step 2: --- YEH SABSE IMPORTANT HISSA HAI ---
+# Hum pehle TA-Lib ko alag se install karenge, saare paths dekar
+pip install --global-option=build_ext --global-option="-I/opt/render/project/src/ta-lib-bin/include" --global-option="-L/opt/render/project/src/ta-lib-bin/lib" TA-Lib
 
-# Step 3: --- YEH NAYI AUR ZAROORI LINE HAI ---
-# Linker ko batayein ki TA-Lib kahan rakhi hai (Link karne ke liye)
-export LD_LIBRARY_PATH=$PWD/ta-lib-bin/lib:$LD_LIBRARY_PATH
-
-# Step 4: Ab Python dependencies install karein
-echo "Installing Python dependencies from requirements.txt..."
+# Step 3: Ab baaki dependencies ko install karein
+echo "Installing remaining Python dependencies..."
 pip install -r requirements.txt
 
 echo "Build process finished successfully!"
