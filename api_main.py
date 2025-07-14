@@ -100,7 +100,7 @@ async def get_chart_image(symbol: str):
     # Cache se chart bytes lo
     image_bytes = chart_cache.get(symbol)
     
-    if not image_bytes:
+    if not image_bytes
         raise HTTPException(status_code=404, detail="Chart not found in cache. Pehle /full_analysis call karein.")
     
     return Response(content=image_bytes, media_type="image/png")
