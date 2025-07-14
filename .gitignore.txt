@@ -1,0 +1,11 @@
+# Python generated files
+__pycache__/
+*.pyc
+venv/
+*.egg-info/
+
+# Environment variables - Bahut Zaroori!
+.env
+
+# Generated output files
+*.png

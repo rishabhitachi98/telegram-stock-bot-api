@@ -1,0 +1,55 @@
+# stocktwits_module.py – Fetches latest messages and sentiment from StockTwits
+
+import requests
+
+def fetch_stocktwits_data(stock_symbol: str) -> list[str]:
+    """
+    StockTwits API se kisi stock symbol ke liye latest messages aur sentiment laata hai.
+    Stock symbol .NS ke bina hona chahiye (e.g., 'RELIANCE', 'TATAMOTORS').
+    """
+    # StockTwits API ke liye URL
+    url = f"https://api.stocktwits.com/api/2/streams/symbol/{stock_symbol}.json"
+    print(f"DEBUG: Calling StockTwits API: {url}")
+
+    try:
+        # Headers mein User-Agent daalna ek acchi practice hai
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        if data.get('response', {}).get('status') == 200 and 'messages' in data:
+            formatted_messages = []
+            # Top 5 messages lo
+            for message in data['messages'][:5]:
+                user = message['user']['username']
+                text = message['body'].replace('\n', ' ')
+                
+                # Sentiment (Bullish/Bearish) nikalo, agar maujood hai
+                sentiment = "Neutral"
+                if message.get('entities', {}).get('sentiment'):
+                    sentiment = message['entities']['sentiment']['basic']
+                
+                formatted_messages.append(f"({sentiment}) {user}: {text}")
+            
+            return formatted_messages
+        else:
+            return [f"StockTwits par is stock ke liye koi message nahi mila."]
+
+    except requests.exceptions.RequestException as e:
+        print(f"StockTwits se data fetch karne mein error: {e}")
+        return ["StockTwits service se connect nahi ho pa raha hai."]
+    except Exception as e:
+        print(f"StockTwits module mein anjaan error: {e}")
+        return ["StockTwits se data fetch karte samay anjaan error aaya."]
+
+# --- Test karne ke liye ---
+if __name__ == '__main__':
+    # StockTwits par Indian stocks ke liye .NS ki jagah .XNSE ya .BSE use hota hai,
+    # lekin aksar sirf symbol bhi kaam kar jaata hai.
+    test_data = fetch_stocktwits_data("TATAMOTORS") 
+    if test_data:
+        print("\nTata Motors par StockTwits Sentiment:")
+        for item in test_data:
+            print(f"- {item}")

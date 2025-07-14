@@ -1,0 +1,21 @@
+# API Framework
+fastapi
+uvicorn[standard]
+
+# Data & Finance Libraries
+yfinance
+pandas
+rapidfuzz
+tradingview-ta
+mplfinance
+TA-Lib
+
+# AI & Utilities
+google-generativeai
+python-dotenv
+
+# News & Web
+feedparser
+requests
+gnews
+finnhub-python

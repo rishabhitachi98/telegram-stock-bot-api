@@ -1,0 +1,107 @@
+[
+  {
+    "symbol": "BEL.NS",
+    "quantity": 220,
+    "avg_price": 140.9
+  },
+  {
+    "symbol": "BHEL.NS",
+    "quantity": 200,
+    "avg_price": 110.0
+  },
+  {
+    "symbol": "EXIDEIND.NS",
+    "quantity": 100,
+    "avg_price": 272.6
+  },
+  {
+    "symbol": "GMRP&UI.NS",
+    "quantity": 1000,
+    "avg_price": 24.3
+  },
+  {
+    "symbol": "GOLDIETF.NS",
+    "quantity": 602,
+    "avg_price": 73.88
+  },
+  {
+    "symbol": "IEX.NS",
+    "quantity": 120,
+    "avg_price": 144.0
+  },
+  {
+    "symbol": "IRFC.NS",
+    "quantity": 150,
+    "avg_price": 73.3
+  },
+  {
+    "symbol": "IRCON.NS",
+    "quantity": 25,
+    "avg_price": 247.75
+  },
+  {
+    "symbol": "JPPOWER.NS",
+    "quantity": 2166,
+    "avg_price": 18.85
+  },
+  {
+    "symbol": "LICI.NS",
+    "quantity": 48,
+    "avg_price": 889.0
+  },
+  {
+    "symbol": "NBCC.NS",
+    "quantity": 450,
+    "avg_price": 107.9
+  },
+  {
+    "symbol": "NHPC.NS",
+    "quantity": 164,
+    "avg_price": 88.65
+  },
+  {
+    "symbol": "NTPC.NS",
+    "quantity": 60,
+    "avg_price": 190.3
+  },
+  {
+    "symbol": "ONGC.NS",
+    "quantity": 75,
+    "avg_price": 197.7
+  },
+  {
+    "symbol": "PARAS.NS",
+    "quantity": 58,
+    "avg_price": 389.39
+  },
+  {
+    "symbol": "RTNINDIA.NS",
+    "quantity": 88,
+    "avg_price": 38.35
+  },
+  {
+    "symbol": "RELIANCE.NS",
+    "quantity": 69,
+    "avg_price": 1288.37
+  },
+  {
+    "symbol": "SBIN.NS",
+    "quantity": 19,
+    "avg_price": 807.6
+  },
+  {
+    "symbol": "TATAMOTORS.NS",
+    "quantity": 150,
+    "avg_price": 738.55
+  },
+  {
+    "symbol": "TATAPOWER.NS",
+    "quantity": 129,
+    "avg_price": 299.34
+  },
+  {
+    "symbol": "TATASTEEL.NS",
+    "quantity": 836,
+    "avg_price": 106.26
+  }
+]
