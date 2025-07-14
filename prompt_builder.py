@@ -1,18 +1,15 @@
-# main1.py (The Final, Cleaned-up Version for Streamlit App)
-
-# Is file ka kaam ab sirf Gemini ke liye prompt banana hai.
-# Hum yahan se baaki sabhi bematlab ke imports hata denge taaki koi error na aaye.
+# prompt_builder.py (Updated for Plan B)
 
 def build_gemini_prompt(
     stock_symbol: str,
     current_price: float,
     fundamentals: dict,
     technicals: dict,
-    candle_summary: str,
+    ohlc_data_string: str, # <-- Badlaav: 'candle_summary' ki jagah yeh naya argument
     news_and_sentiment: list[str]
 ) -> str:
     """
-    Gemini AI ke liye final, aadhunik prompt jo HTML/Markdown ka istemal karta hai.
+    Gemini AI ke liye updated prompt jo raw candlestick data ka istemaal karta hai.
     """
     
     # Data ko aache se format karein
@@ -37,20 +34,23 @@ Tum ek anubhavi Indian stock market analyst ho jo modern, visually appealing rep
 {formatted_fundamentals}
 🔹 **Technical Indicators (from TradingView):**
 {formatted_technicals}
-🔹 **Candlestick Pattern Analysis:**
-{candle_summary}
 🔹 **Latest News & Social Sentiment:**
 {formatted_news}
+
+--- CANDLESTICK ANALYSIS TASK ---
+Neeche pichle 10 dinon ka Open, High, Low, Close (OHLC) data hai.
+{ohlc_data_string}
+Is OHLC data ko gehraai se analyze karo aur batao ki kya koi important bullish (jaise Hammer, Morning Star, Bullish Engulfing) ya bearish (jaise Shooting Star, Hanging Man, Bearish Engulfing) candlestick patterns ban rahe hain. Apne analysis ko "Technical View" section mein shaamil karna.
 --- END OF DATA ---
 
 --- TUMHARA KAAM (HINGLISH MEIN) ---
-Upar diye gaye DATA ke aadhar par ek structured, visually appealing report taiyaar karo.
+Upar diye gaye DATA aur CANDLESTICK ANALYSIS TASK ke aadhar par ek structured, visually appealing report taiyaar karo.
 
 ### 📈 Fundamental View
 Company ke fundamentals ke baare mein batao.
 
 ### 📊 Technical View
-Technical indicators aur candlestick patterns kya sanket de rahe hain?
+Technical indicators **aur upar diye gaye candlestick data se mile patterns** kya sanket de rahe hain?
 
 ### 📰 News, Deals & Sentiment Analysis
 Latest news aur social media sentiment ka stock par kya asar pad sakta hai?
