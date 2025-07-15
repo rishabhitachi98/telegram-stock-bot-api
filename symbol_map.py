@@ -1,7 +1,7 @@
 # symbol_map.py (The Ultimate Version with Better Normalization and Fuzzy Logic)
 
 import pandas as pd
-from rapidfuzz import process, fuzz
+from rapidfuzz import process, fuzz, utils
 import os
 import re
 import yfinance as yf
@@ -15,22 +15,8 @@ _master_name_map = None
 _isin_cache = {}
 
 def _normalize_text(text: str) -> str:
-    """
-    An aggressive normalization that removes all non-alphanumeric characters,
-    making fuzzy matching on typos more effective.
-    Example: "Tata Power Co. Ltd." -> "tatapower"
-    """
-    if not isinstance(text, str): text = str(text)
-    
-    # Convert to lowercase
-    text = text.lower()
-    
-    # Replace '&' with 'and' for consistency
-    text = text.replace('&', 'and')
-    
-    # Remove all non-alphanumeric characters (including spaces, dots, commas, etc.)
-    # This joins the words into a single string for better typo matching.
-    return re.sub(r'[^a-z0-9]', '', text)
+    # Replaced with rapidfuzz's default processor for better consistency
+    return utils.default_process(text)
 
 def _initialize_maps():
     """
@@ -114,7 +100,12 @@ def find_symbol(name: str, isin: str = None) -> str | None:
         
         # Use a more forgiving scorer for typos on single-string names
         result = process.extractOne(cleaned_name, _master_name_map.keys(), scorer=fuzz.ratio, score_cutoff=90)
-        
+        # Nayi Line: Use token_set_ratio for better natural language matching
+# Lower score_cutoff to be more forgiving for sentences
+        result = process.extractOne(cleaned_name,_master_name_map.keys(),scorer=fuzz.token_set_ratio,  # <-- Yahan scorer badla
+                                            score_cutoff=60,               # <-- Score cutoff kam kiya
+                                            processor=utils.default_process # <-- Naya processor add kiya
+                                        )
         if result:
             best_match_str, score, _ = result
             print(f"DEBUG: Smart fuzzy match mila: '{name}' -> '{best_match_str}' (Score: {score})")
