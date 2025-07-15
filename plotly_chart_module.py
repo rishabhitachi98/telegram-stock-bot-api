@@ -1,4 +1,4 @@
-# plotly_chart_module.py (THE CORRECTED AND FINAL SYNTAX VERSION)
+# plotly_chart_module.py (FINAL VERSION for Chart Readability)
 import plotly.graph_objects as go
 import yfinance as yf
 import pandas as pd
@@ -12,7 +12,6 @@ def generate_plotly_candlestick(symbol: str) -> (bytes | None):
         # Fetch 6 months of data for the chart
         df = yf.Ticker(symbol).history(period="6mo")
         if df.empty:
-            # Agar data nahi milta, to None return karein (aur raise na karein, ye expected hai)
             print(f"Warning: No data found for {symbol} to generate chart.")
             return None
         
@@ -26,20 +25,21 @@ def generate_plotly_candlestick(symbol: str) -> (bytes | None):
         
         fig.update_layout(
             title=f'{symbol} - 6 Month Candlestick Chart',
-            xaxis_title='Date',
-            yaxis_title='Price (INR)',
-            xaxis_rangeslider_visible=True,
-            template='plotly_dark',
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
-            xaxis_showgrid=True,
-            yaxis_showgrid=True,
-            xaxis_tickformat='%b %d',
-            font=dict(color='white', size=12)
+            xaxis_title='Date',  # X-axis label
+            yaxis_title='Price (INR)',  # Y-axis label
+            xaxis_rangeslider_visible=True, # Rangeslider visible
+            template='plotly_dark',  # Dark theme
+            paper_bgcolor='rgba(0,0,0,0)',  # Transparent background
+            plot_bgcolor='rgba(0,0,0,0)',  # Transparent plot area
+            xaxis_showgrid=True,  # X-axis grid lines
+            yaxis_showgrid=True,  # Y-axis grid lines
+            xaxis_tickformat='%b %d',  # Dates ko "Jul 15" format mein dikhayega
+            font=dict(color='white', size=12),  # Font color aur size dark theme ke liye
+            margin=dict(l=80, r=80, t=80, b=80) # Margins badhayi labels ke liye
         )
 
         # Save the chart image to in-memory bytes
-        img_bytes = fig.to_image(format="png", width=1000, height=600, scale=2)
+        img_bytes = fig.to_image(format="png", width=1200, height=700, scale=2) # Image dimensions badhayi
         
         return img_bytes
 
@@ -47,4 +47,4 @@ def generate_plotly_candlestick(symbol: str) -> (bytes | None):
         # Yahan hum error ko print karke raise karenge, taaki Render logs mein dikhe
         error_msg = f"ERROR in generate_plotly_candlestick: {e}"
         print(error_msg)
-        raise # <--- Yeh line error ko aage badhayegi
+        raise # <-- Yeh line error ko aage badhayegi
