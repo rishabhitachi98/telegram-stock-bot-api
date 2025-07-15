@@ -105,5 +105,13 @@ async def get_chart_image(symbol: str):
     
     return Response(content=image_bytes, media_type="image/png")
 
+# api_main.py (New Ping Endpoint)
+
+@app.get("/ping")
+def ping_pong():
+    """
+    Health check endpoint for keeping the service alive.
+    """
+    return {"status": "pong", "message": "API is awake!"}
 if __name__ == "__main__":
     uvicorn.run("api_main:app", host="0.0.0.0", port=8000, reload=True)
