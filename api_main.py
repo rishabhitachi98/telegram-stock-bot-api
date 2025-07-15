@@ -89,8 +89,10 @@ async def get_full_analysis(stock_name: str):
             "stock_name": spoken_company,
             "symbol": symbol,
             "gemini_analysis_report": gemini_report,
+            "chart_data_status": "Chart generated successfully!" if chart_bytes else "Chart generation failed!",
             "chart_available": True if chart_bytes else False
-        }
+            }
+}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Analysis ke dauran error: {str(e)}")
 

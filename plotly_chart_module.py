@@ -44,5 +44,6 @@ def generate_plotly_candlestick(symbol: str) -> (bytes | None):
         return img_bytes
 
     except Exception as e:
-        print(f"ERROR in generate_plotly_candlestick: {e}")
-        return None
+    error_msg = f"ERROR in generate_plotly_candlestick: {e}"
+    print(error_msg)
+    raise # <--- Yeh line add karein. Isse error Render logs mein poora dikhega.
