@@ -1,15 +1,16 @@
-# prompt_builder.py (Updated for Plan B)
+# prompt_builder.py (FINAL Version for Text Formatting)
 
 def build_gemini_prompt(
     stock_symbol: str,
     current_price: float,
     fundamentals: dict,
     technicals: dict,
-    ohlc_data_string: str, # <-- Badlaav: 'candle_summary' ki jagah yeh naya argument
+    ohlc_data_string: str,
     news_and_sentiment: list[str]
 ) -> str:
     """
-    Gemini AI ke liye updated prompt jo raw candlestick data ka istemaal karta hai.
+    Gemini AI ke liye updated prompt jo raw candlestick data ka istemal karta hai.
+    Ab Markdown formatting aur emojis use honge, HTML tags nahi.
     """
     
     # Data ko aache se format karein
@@ -21,11 +22,11 @@ def build_gemini_prompt(
     return f"""
 Tum ek anubhavi Indian stock market analyst ho jo modern, visually appealing reports banata hai.
 **IMPORTANT RULE: Jawab hamesha HINGLISH mein do, lekin sirf ROMAN SCRIPT (ABCD...) ka istemal karo.**
-**OUTPUT FORMAT: Jawab hamesha aache se structured MARKDOWN mein do. Important keywords ko highlight karne ke liye HTML tags ka istemal karo.**
+**OUTPUT FORMAT: Jawab hamesha aache se structured MARKDOWN mein do. HTML tags ka istemal mat karo.**
 
-- Positive (Bullish) points ke liye <span style="color: #4CAF50; font-weight: bold;">green color</span> ka istemal karo.
-- Negative (Bearish) points ke liye <span style="color: #F44336; font-weight: bold;">red color</span> ka istemal karo.
-- Neutral ya important information ke liye <span style="color: #2196F3; font-weight: bold;">blue color</span> ka istemal karo.
+- Positive (Bullish) points ke liye 🟢 emoji aur **bold text** ka istemal karo.
+- Negative (Bearish) points ke liye 🔴 emoji aur **bold text** ka istemal karo.
+- Neutral ya important information ke liye 🔵 emoji aur **bold text** ka istemal karo.
 
 --- DATA ---
 🔹 **Stock Symbol:** {stock_symbol}
@@ -58,6 +59,44 @@ Latest news aur social media sentiment ka stock par kya asar pad sakta hai?
 ### 🎯 Final Verdict & Actionable Advice
 Short-term aur Long-term ke liye kya salah hai? Is stock mein mukhya jokhim (risks) kya hain?
 
-Ant mein ek saaf one-line verdict do:
-**<p style="background-color: #E3F2FD; border-left: 5px solid #2196F3; padding: 10px;">Overall Verdict: [Strong Buy / Buy / Hold / Sell / Strong Sell] - [Chhota sa kaaran, HINGLISH MEIN]</p>**
+Ant mein ek saaf one-line verdict do, use <p> tags mein mat daalna:
+**Overall Verdict:** [Strong Buy / Buy / Hold / Sell / Strong Sell] - [Chhota sa kaaran, HINGLISH MEIN]
 """
+
+# gemini_module.py (FINAL Version for Text Formatting)
+import google.generativeai as genai
+from config_loader import GEMINI_API_KEY
+
+_gemini_model = None
+_is_gemini_configured_once = False 
+
+def _configure_gemini_if_needed():
+    global _gemini_model, _is_gemini_configured_once
+    if _is_gemini_configured_once:
+        return
+
+    if GEMINI_API_KEY:
+        try:
+            genai.configure(api_key=GEMINI_API_KEY)
+            _gemini_model = genai.GenerativeModel('gemini-1.5-pro-latest')
+            print("✅ Gemini module configured successfully.")
+        except Exception as e:
+            print(f"❌ CRITICAL: Gemini configuration failed: {e}")
+    else:
+        print("❌ WARNING: Gemini API Key not found.")
+    _is_gemini_configured_once = True 
+
+def chat_with_gemini(prompt: str) -> str:
+    _configure_gemini_if_needed()
+    
+    if not _gemini_model:
+        return "Gemini Error: Module configure nahi ho paaya. Apni .env file aur API Key check karein."
+    
+    try:
+        response = _gemini_model.generate_content(prompt)
+        # Ab hum koi extra cleaning nahi kar rahe, seedha response text le rahe hain
+        return response.text.strip()
+    except Exception as e:
+        error_message = f"Gemini Error: API call fail ho gayi. Kaaran: {e}"
+        print(f"❌ {error_message}")
+        return error_message

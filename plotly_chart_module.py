@@ -1,4 +1,4 @@
-# plotly_chart_module.py (The new TA-Lib Free module)
+# plotly_chart_module.py (FINAL Version for Chart Readability)
 import plotly.graph_objects as go
 import yfinance as yf
 import pandas as pd
@@ -6,7 +6,7 @@ import pandas as pd
 def generate_plotly_candlestick(symbol: str) -> (bytes | None):
     """
     Generates a candlestick chart using Plotly and returns the image as bytes.
-    It does NOT do any analysis. Analysis will be done by Gemini AI.
+    Analysis will be done by Gemini AI.
     """
     try:
         # Fetch 6 months of data for the chart
@@ -25,11 +25,16 @@ def generate_plotly_candlestick(symbol: str) -> (bytes | None):
         
         fig.update_layout(
             title=f'{symbol} - 6 Month Candlestick Chart',
-            yaxis_title='Price (INR)',
-            xaxis_rangeslider_visible=False, # Slider ko hata dete hain, aacha dikhta hai
-            template='plotly_dark', # Dark theme
-            paper_bgcolor='rgba(0,0,0,0)', # Transparent background
-            plot_bgcolor='rgba(0,0,0,0)'
+            xaxis_title='Date',  # <-- Naya: X-axis label
+            yaxis_title='Price (INR)',  # <-- Naya: Y-axis label
+            xaxis_rangeslider_visible=True, # <-- Badlaav: Rangeslider ko visible rakhein
+            template='plotly_dark',  # Dark theme
+            paper_bgcolor='rgba(0,0,0,0)',  # Transparent background
+            plot_bgcolor='rgba(0,0,0,0)',  # Transparent plot area
+            xaxis_showgrid=True,  # <-- Naya: X-axis grid lines
+            yaxis_showgrid=True,  # <-- Naya: Y-axis grid lines
+            xaxis_tickformat='%b %d',  # <-- Naya: Dates ko "Jul 15" format mein dikhayega
+            font=dict(color='white', size=12)  # <-- Naya: Font color aur size dark theme ke liye
         )
 
         # Save the chart image to in-memory bytes
