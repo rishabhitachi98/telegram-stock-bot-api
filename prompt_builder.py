@@ -1,4 +1,4 @@
-# prompt_builder.py (FINAL Version for Text Formatting)
+# prompt_builder.py (FINALIZED Version for Text Formatting)
 
 def build_gemini_prompt(
     stock_symbol: str,
@@ -30,7 +30,7 @@ Tum ek anubhavi Indian stock market analyst ho jo modern, visually appealing rep
 
 --- DATA ---
 🔹 **Stock Symbol:** {stock_symbol}
-🔹 **Current Price:** ₹{current_price}
+🔹 *   **Current Price:** ₹{current_price}  (Yeh value ko aap apni report mein pehle hi Fundamental View ke upar ya Key Metrics mein highlight kar sakte hain).
 🔹 **Fundamental Analysis:**
 {formatted_fundamentals}
 🔹 **Technical Indicators (from TradingView):**
@@ -47,56 +47,20 @@ Is OHLC data ko gehraai se analyze karo aur batao ki kya koi important bullish (
 --- TUMHARA KAAM (HINGLISH MEIN) ---
 Upar diye gaye DATA aur CANDLESTICK ANALYSIS TASK ke aadhar par ek structured, visually appealing report taiyaar karo.
 
+**Current Live Price:** ₹{current_price}
+
 ### 📈 Fundamental View
-Company ke fundamentals ke baare mein batao.
+Company ke fundamentals ke baare mein batao. **Sirf bullet points mein** detail mein batao. Har point ko 🟢, 🔴, 🔵 emoji ke saath shuru karo.
 
 ### 📊 Technical View
-Technical indicators **aur upar diye gaye candlestick data se mile patterns** kya sanket de rahe hain?
+Technical indicators **aur upar diye gaye candlestick data se mile patterns** kya sanket de rahe hain? Is section ko bhi **sirf bullet points mein** likho. Har point ko 🟢, 🔴, 🔵 emoji ke saath shuru karo.
 
 ### 📰 News, Deals & Sentiment Analysis
-Latest news aur social media sentiment ka stock par kya asar pad sakta hai?
+Latest news aur social media sentiment ka stock par kya asar pad sakta hai? Yeh section bhi **sirf bullet points mein** hona chahiye. Har point ko 🟢, 🔴, 🔵 emoji ke saath shuru karo.
 
 ### 🎯 Final Verdict & Actionable Advice
-Short-term aur Long-term ke liye kya salah hai? Is stock mein mukhya jokhim (risks) kya hain?
+Short-term aur Long-term ke liye kya salah hai? Is stock mein mukhya jokhim (risks) kya hain? Yeh section bhi **sirf bullet points mein** hona chahiye. Har point ko 🟢, 🔴, 🔵 emoji ke saath shuru karo.
 
 Ant mein ek saaf one-line verdict do, use <p> tags mein mat daalna:
 **Overall Verdict:** [Strong Buy / Buy / Hold / Sell / Strong Sell] - [Chhota sa kaaran, HINGLISH MEIN]
 """
-
-# gemini_module.py (FINAL Version for Text Formatting)
-import google.generativeai as genai
-from config_loader import GEMINI_API_KEY
-
-_gemini_model = None
-_is_gemini_configured_once = False 
-
-def _configure_gemini_if_needed():
-    global _gemini_model, _is_gemini_configured_once
-    if _is_gemini_configured_once:
-        return
-
-    if GEMINI_API_KEY:
-        try:
-            genai.configure(api_key=GEMINI_API_KEY)
-            _gemini_model = genai.GenerativeModel('gemini-1.5-pro-latest')
-            print("✅ Gemini module configured successfully.")
-        except Exception as e:
-            print(f"❌ CRITICAL: Gemini configuration failed: {e}")
-    else:
-        print("❌ WARNING: Gemini API Key not found.")
-    _is_gemini_configured_once = True 
-
-def chat_with_gemini(prompt: str) -> str:
-    _configure_gemini_if_needed()
-    
-    if not _gemini_model:
-        return "Gemini Error: Module configure nahi ho paaya. Apni .env file aur API Key check karein."
-    
-    try:
-        response = _gemini_model.generate_content(prompt)
-        # Ab hum koi extra cleaning nahi kar rahe, seedha response text le rahe hain
-        return response.text.strip()
-    except Exception as e:
-        error_message = f"Gemini Error: API call fail ho gayi. Kaaran: {e}"
-        print(f"❌ {error_message}")
-        return error_message
