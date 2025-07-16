@@ -44,7 +44,8 @@ def generate_plotly_candlestick(symbol: str) -> (bytes | None):
             height=1400
         )
 
-        img_bytes = fig.to_image(format="png", width=2400, height=1400, scale=3)
+        img_bytes = fig.to_image(format="png", width=1600, height=900, scale=2)
+
         return img_bytes
 
     except Exception as e:
