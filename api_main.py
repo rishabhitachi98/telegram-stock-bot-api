@@ -312,5 +312,5 @@ def ping_pong():
     """Health check endpoint for keeping the service alive."""
     return {"status": "pong", "message": "API is awake!"}
 
-if name == "main":
+if __name__ == "__main__":
     uvicorn.run("api_main:app", host="0.0.0.0", port=8000, reload=True)
