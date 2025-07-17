@@ -243,9 +243,44 @@ async def list_top_stocks_endpoint():
 
         ranked_stocks = []
         for stock in bulk_data:
-            score = (1 / (stock.get('pe_ratio', 100) + 1)) * 100 \
-                    + (stock.get('dividend_yield', 0) * 100) \
-                    + (stock.get('market_cap', 0) / 1_00_00_000_000_000) * 10 
+            # Ensure numbers are not None before calculation
+            pe_ratio = stock.get('pe_ratio')
+            dividend_yield = stock.get('dividend_yield')
+            market_cap = stock.get('market_cap')
+
+            # Calculate score safely, providing default if data is None
+            score = 0 # Default score if calculations fail
+            try:
+                # P/E score: Lower is better, so (1/PE) * factor
+                pe_score = (1 / (pe_ratio + 1)) * 100 if pe_ratio is not None and pe_ratio > 0 else 0
+                
+                # Dividend Yield score: Higher is better
+                dividend_score = (dividend_yield * 100) if dividend_yield is not None else 0
+                
+                # Market Cap score: Larger companies get higher score (adjust factor as needed)
+                # Avoid division by zero, use a small default if market_cap is zero or None
+                market_cap_score = (market_cap / 1_00_00_000_000_000) * 10 if market_cap is not None and market_cap > 0 else 0
+                
+                score = pe_score + dividend_score + market_cap_score
+                
+            except Exception as score_e:
+                print(f"Warning: Scoring failed for {stock['symbol']}: {score_e}. Setting score to 0.")
+                score = 0 # If any calculation causes error, set score to 0
+        
+    # Agar koi fundamental data missing hai, score ko kam karein
+    if pe_ratio is None or stock.get('debt_to_equity') is None:
+        score = score * 0.5 # Kam score kar do
+    
+    # Append data to ranked_stocks
+    ranked_stocks.append({
+        "symbol": stock['symbol'],
+        "current_price": stock['current_price'],
+        "pe_ratio": pe_ratio, # Use the directly accessed variables
+        "dividend_yield": dividend_yield,
+        "score": score,
+        "nearest_target": "N/A (AI Target will come here)", 
+        "brief_reason": "Loading..." 
+    })
             
             if stock.get('pe_ratio') is None or stock.get('debt_to_equity') is None:
                 score = score * 0.5 
