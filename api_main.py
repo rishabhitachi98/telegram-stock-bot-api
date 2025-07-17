@@ -309,9 +309,8 @@ async def get_chart_image(symbol: str):
     
 @app.get("/ping")
 def ping_pong():
-"""
-Health check endpoint for keeping the service alive.
-"""
-return {"status": "pong", "message": "API is awake!"}
+    """Health check endpoint for keeping the service alive."""
+    return {"status": "pong", "message": "API is awake!"}
+
 if name == "main":
-uvicorn.run("api_main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("api_main:app", host="0.0.0.0", port=8000, reload=True)
