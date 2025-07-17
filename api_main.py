@@ -5,6 +5,7 @@ import sys
 import os
 from concurrent.futures import ThreadPoolExecutor
 
+
 # --- Path aur Imports Setup ---
 # Yeh line ensure karti hai ki aapke custom modules mil jayein
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
@@ -18,6 +19,8 @@ from news_aggregator_module import get_all_relevant_news
 from gemini_module import chat_with_gemini
 from prompt_builder import build_gemini_prompt
 import yfinance as yf
+
+import re # <-- Naya import
 
 # --- FastAPI App ---
 app = FastAPI(title="AI Stock Analyst API", version="2.0.0")
@@ -103,6 +106,111 @@ async def get_full_analysis(stock_name: str):
 
 # Naya endpoint chart image ke liye
 @app.get("/get_chart/{symbol}")
+
+
+
+
+# api_main.py (New endpoint for /list command)
+
+from symbol_map import get_nifty_500_tickers # <-- Naya import
+
+@app.get("/list_top_stocks")
+async def list_top_stocks_endpoint():
+    """
+    Lists top N stocks based on combined analysis.
+    This is a resource-intensive operation.
+    """
+    try:
+        # 1. Stocks ki list lo
+        # Abhi ke liye, hum Nifty 500 proxy se sirf 50 stocks lenge
+        # Sabhi 500 stocks ka data fetch karna timeout de sakta hai free tier par
+        all_nifty_tickers = get_nifty_500_tickers()
+        
+        # Limited number of stocks for actual processing on free tier
+        # Aap is number ko baad mein badha sakte hain agar performance theek rahi
+        tickers_to_process = all_nifty_tickers[:50] 
+
+        if not tickers_to_process:
+            raise HTTPException(status_code=500, detail="Stock tickers list empty.")
+
+        # 2. Bulk data fetch karein
+        # get_bulk_stock_data is function ko hum bana chuke hain
+        bulk_data = get_bulk_stock_data(tickers_to_process)
+
+        if not bulk_data:
+            raise HTTPException(status_code=500, detail="Bulk stock data fetch nahi ho paaya.")
+
+        # 3. Scoring aur Ranking (Abhi ke liye dummy logic)
+        # Yahan hum ranking logic daalenge. Abhi ke liye, sirf sample data
+        ranked_stocks = []
+        for stock in bulk_data:
+            # Dummy Score: P/E (inverted) + Dividend Yield + Market Cap (random)
+            score = (1 / (stock.get('pe_ratio', 100) + 1)) * 100 \
+                    + (stock.get('dividend_yield', 0) * 100) \
+                    + (stock.get('market_cap', 0) / 1_00_00_000_000_000) * 10 # Random factor
+            
+            # Agar koi fundamental data missing hai, score ko kam karein
+            if stock.get('pe_ratio') is None or stock.get('debt_to_equity') is None:
+                score = score * 0.5 # Kam score kar do
+            
+            ranked_stocks.append({
+                "symbol": stock['symbol'],
+                "current_price": stock['current_price'],
+                "pe_ratio": stock.get('pe_ratio'),
+                "dividend_yield": stock.get('dividend_yield'),
+                "score": score,
+                # Yahan aap dummy target bhi de sakte hain abhi
+                "nearest_target": "N/A (AI Target will come here)", 
+                "brief_reason": "Loading..." # AI reason will come here
+            })
+        
+        # Scores ke aadhar par sort karein (Highest score top par)
+        ranked_stocks.sort(key=lambda x: x['score'], reverse=True)
+
+        # Top 10 stocks ko select karein
+        top_10_stocks = ranked_stocks[:10]
+
+        # 4. Gemini se Final Analysis aur Target Price (Loop ke andar)
+        # Har stock ke liye AI se brief summary aur nearest target nikalwayenge.
+        # Yeh process time-consuming hoga.
+        final_top_stocks_with_ai = []
+        print(f"DEBUG: Getting AI insights for top {len(top_10_stocks)} stocks...")
+        
+        for stock_item in top_10_stocks:
+            # Ek brief prompt banayein is stock item ke liye
+            brief_prompt = f"""
+            Tum ek Indian Stock Market Analyst ho. Neeche ek stock ka data hai:
+            Symbol: {stock_item['symbol']}
+            Current Price: ₹{stock_item['current_price']}
+            P/E Ratio: {stock_item['pe_ratio']}
+            Dividend Yield: {stock_item['dividend_yield']}
+
+            Is data ke aadhar par, is stock mein invest karne ka ek **chhota sa reason (20-30 words)** HINGLISH mein do.
+            Aur is stock ka **nearest possible target price (अगले 1-3 mahine)** HINGLISH mein batao.
+            Format:
+            Reason: [Reason here]
+            Target: [Target Price]
+            """
+            
+            ai_response = chat_with_gemini(brief_prompt)
+            
+            # Gemini ke response ko parse karein
+            reason_match = re.search(r"Reason: (.*)", ai_response, re.IGNORECASE)
+            target_match = re.search(r"Target: (.*)", ai_response, re.IGNORECASE)
+
+            stock_item['brief_reason'] = reason_match.group(1).strip() if reason_match else "Reason not available."
+            stock_item['nearest_target'] = target_match.group(1).strip() if target_match else "Target not available."
+            
+            final_top_stocks_with_ai.append(stock_item)
+
+        return {"top_stocks": final_top_stocks_with_ai}
+
+    except HTTPException: # Re-raise HTTPException if find_symbol failed etc.
+        raise
+    except Exception as e:
+        print(f"ERROR in list_top_stocks_endpoint: {e}")
+        raise HTTPException(status_code=500, detail=f"Top stocks list generate nahi ho paayi: {str(e)}")
+        
 async def get_chart_image(symbol: str):
     # Cache se chart bytes lo
     image_bytes = chart_cache.get(symbol)
