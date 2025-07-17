@@ -1,13 +1,15 @@
-# api_main.py (THE ABSOLUTELY FINAL AND CORRECT VERSION)
+# api_main.py (THE ABSOLUTELY FINAL AND CORRECT VERSION - Indentation Fixed)
 from fastapi import FastAPI, HTTPException, Response
 import uvicorn
 import sys
 import os
 from concurrent.futures import ThreadPoolExecutor
 import re # Needed for list_top_stocks_endpoint
+import pandas as pd # Needed for get_quarterly_financials
 import yfinance as yf # Needed for get_price_and_ohlc, get_bulk_stock_data, get_quarterly_financials
 
 # --- Path aur Imports Setup ---
+# Yeh line ensure karti hai ki aapke custom modules mil jayein
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 from symbol_map import find_symbol, get_nifty_500_tickers # get_nifty_500_tickers for /list
@@ -98,10 +100,9 @@ def get_quarterly_financials(symbol: str) -> str:
         report_lines.append("| Quarter | Revenue | YoY % | QoQ % | Net Income | YoY % | QoQ % | EPS | YoY % |")
         report_lines.append("|---|---|---|---|---|---|---|---|---|")
 
-        prev_revenue_yoy = None
-        prev_net_income_yoy = None
-        prev_eps_yoy = None
-        
+        prev_revenue_qoq = None 
+        prev_net_income_qoq = None 
+
         # Get latest 4 unique quarter dates
         dates_financials = financials.T.index.to_list()
         dates_earnings = earnings.T.index.to_list()
@@ -136,32 +137,33 @@ def get_quarterly_financials(symbol: str) -> str:
 
             # YoY Calculation (Requires data from a year ago)
             prev_year_date = date - pd.DateOffset(years=1)
-            if prev_year_date in financials.T.index and prev_year_date in earnings.T.index:
+            if prev_year_date in financials.T.index and prev_year_date in earnings.T.index: 
                 prev_y_rev = financials.T.loc[prev_year_date].get('Total Revenue')
                 prev_y_net = financials.T.loc[prev_year_date].get('Net Income')
                 prev_y_eps = earnings.T.loc[prev_year_date].get('Diluted EPS')
 
-                if prev_y_rev and revenue:
+                if prev_y_rev is not None and revenue is not None:
                     growth = ((revenue - prev_y_rev) / prev_y_rev) * 100 if prev_y_rev != 0 else float('inf')
-                    yoy_revenue_growth = f"{growth:+.2f}%" if abs(growth) < 1000 else "N/A"
-                if prev_y_net and net_income:
+                    yoy_revenue_growth = f"{growth:+.2f}%" if abs(growth) < 1000 and not pd.isna(growth) else "N/A"
+                if prev_y_net is not None and net_income is not None:
                     growth = ((net_income - prev_y_net) / prev_y_net) * 100 if prev_y_net != 0 else float('inf')
-                    yoy_net_income_growth = f"{growth:+.2f}%" if abs(growth) < 1000 else "N/A"
-                if prev_y_eps and eps:
+                    yoy_net_income_growth = f"{growth:+.2f}%" if abs(growth) < 1000 and not pd.isna(growth) else "N/A"
+                if prev_y_eps is not None and eps is not None:
                     growth = ((eps - prev_y_eps) / prev_y_eps) * 100 if prev_y_eps != 0 else float('inf')
-                    yoy_eps_growth = f"{growth:+.2f}%" if abs(growth) < 1000 else "N/A"
+                    yoy_eps_growth = f"{growth:+.2f}%" if abs(growth) < 1000 and not pd.isna(growth) else "N/A"
             
             # QoQ Calculation (Requires data from previous quarter in current loop)
             if i > 0:
                 prev_q_data = quarter_data_for_display[i-1]
-                if prev_q_data['revenue'] and revenue and prev_q_data['revenue'] != 0:
+                if prev_q_data['revenue'] is not None and revenue is not None and prev_q_data['revenue'] != 0:
                     qoq_revenue_growth = f"{((revenue - prev_q_data['revenue']) / prev_q_data['revenue']) * 100:+.2f}%"
-                if prev_q_data['net_income'] and net_income and prev_q_data['net_income'] != 0:
+                if prev_q_data['net_income'] is not None and net_income is not None and prev_q_data['net_income'] != 0:
                     qoq_net_income_growth = f"{((net_income - prev_q_data['net_income']) / prev_q_data['net_income']) * 100:+.2f}%"
 
             report_lines.append(f"| {date.strftime('%Y-%m')} | {revenue_str} | {yoy_revenue_growth} | {qoq_revenue_growth} | {net_income_str} | {yoy_net_income_growth} | {qoq_net_income_growth} | {eps_str} | {yoy_eps_growth} |")
         
-        return "\n".join(report_lines)
+        # Reverse the order for the table to show latest quarter at the top
+        return "\n".join(report_lines[0:2] + report_lines[2:][::-1]) # Keep header and separator, reverse data rows
 
     except Exception as e:
         print(f"Error fetching quarterly financials for {symbol}: {e}")
@@ -187,7 +189,7 @@ async def get_full_analysis(stock_name: str):
             future_price_ohlc = executor.submit(get_price_and_ohlc, symbol)
             future_technicals = executor.submit(fetch_tradingview_analysis, symbol)
             future_fundamentals = executor.submit(get_fundamental_data, symbol)
-            future_quarterly_data = executor.submit(get_quarterly_financials, symbol) # New for Quarterly
+            future_quarterly_data = executor.submit(get_quarterly_financials, symbol) 
             future_candle_chart = executor.submit(generate_plotly_candlestick, symbol) 
             future_twits = executor.submit(fetch_stocktwits_data, symbol)
 
@@ -196,7 +198,7 @@ async def get_full_analysis(stock_name: str):
             current_price = round(current_price, 2)
             technicals = future_technicals.result()
             fundamentals = future_fundamentals.result()
-            quarterly_financials_report = future_quarterly_data.result() # New for Quarterly
+            quarterly_financials_report = future_quarterly_data.result() 
             chart_bytes = future_candle_chart.result()
             twits = future_twits.result()
             
@@ -205,7 +207,7 @@ async def get_full_analysis(stock_name: str):
 
         prompt = build_gemini_prompt(
             symbol, current_price, fundamentals, technicals, ohlc_data_string, 
-            news_and_sentiment, quarterly_financials_report # Pass new quarterly data
+            news_and_sentiment, quarterly_financials_report 
         )
         
         gemini_report = chat_with_gemini(prompt)
@@ -297,19 +299,22 @@ async def list_top_stocks_endpoint():
     except Exception as e:
         print(f"ERROR in list_top_stocks_endpoint: {e}")
         raise HTTPException(status_code=500, detail=f"Top stocks list generate nahi ho paayi: {str(e)}")
-
+        
 @app.get("/get_chart/{symbol}")
 async def get_chart_image(symbol: str):
-# Cache se chart bytes lo
+    # Cache se chart bytes lo
     image_bytes = chart_cache.get(symbol)
+    
     if not image_bytes:
         raise HTTPException(status_code=404, detail="Chart not found in cache. Pehle /full_analysis call karein.")
-
+    
     return Response(content=image_bytes, media_type="image/png")
     
 @app.get("/ping")
 def ping_pong():
-    """Health check endpoint for keeping the service alive."""
+    """
+    Health check endpoint for keeping the service alive.
+    """
     return {"status": "pong", "message": "API is awake!"}
 
 if __name__ == "__main__":
