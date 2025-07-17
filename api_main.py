@@ -1,4 +1,4 @@
-# api_main.py (THE ABSOLUTELY FINAL AND CORRECT VERSION - Indentation Fixed)
+# api_main.py (THE ABSOLUTELY FINAL AND CORRECT VERSION - Indentation Fixed & Duplicate Append Removed)
 from fastapi import FastAPI, HTTPException, Response
 import uvicorn
 import sys
@@ -9,7 +9,6 @@ import pandas as pd # Needed for get_quarterly_financials
 import yfinance as yf # Needed for get_price_and_ohlc, get_bulk_stock_data, get_quarterly_financials
 
 # --- Path aur Imports Setup ---
-# Yeh line ensure karti hai ki aapke custom modules mil jayein
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 from symbol_map import find_symbol, get_nifty_500_tickers # get_nifty_500_tickers for /list
@@ -135,22 +134,23 @@ def get_quarterly_financials(symbol: str) -> str:
             qoq_net_income_growth = "N/A"
             yoy_eps_growth = "N/A"
 
-            # YoY Calculation (Requires data from a year ago)
+            # If prev_year_date in financials.T.index and prev_year_date in earnings.T.index: 
+            # This check is now integrated in the calculation
             prev_year_date = date - pd.DateOffset(years=1)
-            if prev_year_date in financials.T.index and prev_year_date in earnings.T.index: 
-                prev_y_rev = financials.T.loc[prev_year_date].get('Total Revenue')
-                prev_y_net = financials.T.loc[prev_year_date].get('Net Income')
-                prev_y_eps = earnings.T.loc[prev_year_date].get('Diluted EPS')
+            
+            prev_y_rev = financials.T.loc[prev_year_date].get('Total Revenue') if prev_year_date in financials.T.index else None
+            prev_y_net = financials.T.loc[prev_year_date].get('Net Income') if prev_year_date in financials.T.index else None
+            prev_y_eps = earnings.T.loc[prev_year_date].get('Diluted EPS') if prev_year_date in earnings.T.index else None
 
-                if prev_y_rev is not None and revenue is not None:
-                    growth = ((revenue - prev_y_rev) / prev_y_rev) * 100 if prev_y_rev != 0 else float('inf')
-                    yoy_revenue_growth = f"{growth:+.2f}%" if abs(growth) < 1000 and not pd.isna(growth) else "N/A"
-                if prev_y_net is not None and net_income is not None:
-                    growth = ((net_income - prev_y_net) / prev_y_net) * 100 if prev_y_net != 0 else float('inf')
-                    yoy_net_income_growth = f"{growth:+.2f}%" if abs(growth) < 1000 and not pd.isna(growth) else "N/A"
-                if prev_y_eps is not None and eps is not None:
-                    growth = ((eps - prev_y_eps) / prev_y_eps) * 100 if prev_y_eps != 0 else float('inf')
-                    yoy_eps_growth = f"{growth:+.2f}%" if abs(growth) < 1000 and not pd.isna(growth) else "N/A"
+            if prev_y_rev is not None and revenue is not None:
+                growth = ((revenue - prev_y_rev) / prev_y_rev) * 100 if prev_y_rev != 0 else float('inf')
+                yoy_revenue_growth = f"{growth:+.2f}%" if abs(growth) < 1000 and not pd.isna(growth) else "N/A"
+            if prev_y_net is not None and net_income is not None:
+                growth = ((net_income - prev_y_net) / prev_y_net) * 100 if prev_y_net != 0 else float('inf')
+                yoy_net_income_growth = f"{growth:+.2f}%" if abs(growth) < 1000 and not pd.isna(growth) else "N/A"
+            if prev_y_eps is not None and eps is not None:
+                growth = ((eps - prev_y_eps) / prev_y_eps) * 100 if prev_y_eps != 0 else float('inf')
+                yoy_eps_growth = f"{growth:+.2f}%" if abs(growth) < 1000 and not pd.isna(growth) else "N/A"
             
             # QoQ Calculation (Requires data from previous quarter in current loop)
             if i > 0:
@@ -267,29 +267,16 @@ async def list_top_stocks_endpoint():
                 print(f"Warning: Scoring failed for {stock['symbol']}: {score_e}. Setting score to 0.")
                 score = 0 # If any calculation causes error, set score to 0
         
-    # Agar koi fundamental data missing hai, score ko kam karein
-    if pe_ratio is None or stock.get('debt_to_equity') is None:
-        score = score * 0.5 # Kam score kar do
-    
-    # Append data to ranked_stocks
-    ranked_stocks.append({
-        "symbol": stock['symbol'],
-        "current_price": stock['current_price'],
-        "pe_ratio": pe_ratio, # Use the directly accessed variables
-        "dividend_yield": dividend_yield,
-        "score": score,
-        "nearest_target": "N/A (AI Target will come here)", 
-        "brief_reason": "Loading..." 
-    })
+            # Agar koi fundamental data missing hai, score ko kam karein
+            if pe_ratio is None or stock.get('debt_to_equity') is None:
+                score = score * 0.5 # Kam score kar do
             
-            if stock.get('pe_ratio') is None or stock.get('debt_to_equity') is None:
-                score = score * 0.5 
-            
+            # Append data to ranked_stocks
             ranked_stocks.append({
                 "symbol": stock['symbol'],
                 "current_price": stock['current_price'],
-                "pe_ratio": stock.get('pe_ratio'),
-                "dividend_yield": stock.get('dividend_yield'),
+                "pe_ratio": pe_ratio, # Use the directly accessed variables
+                "dividend_yield": dividend_yield,
                 "score": score,
                 "nearest_target": "N/A (AI Target will come here)", 
                 "brief_reason": "Loading..." 
